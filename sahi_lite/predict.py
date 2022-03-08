@@ -7,17 +7,17 @@ import warnings
 from typing import List, Optional
 
 import numpy as np
-from sahi.postprocess.combine import (
+from sahi_lite.postprocess.combine import (
     GreedyNMMPostprocess,
     LSNMSPostprocess,
     NMMPostprocess,
     NMSPostprocess,
     PostprocessPredictions,
 )
-from sahi.postprocess.legacy.combine import UnionMergePostprocess
-from sahi.prediction import ObjectPrediction, PredictionResult
-from sahi.slicing import slice_image
-from sahi.utils.cv import read_image_as_pil
+from sahi_lite.postprocess.legacy.combine import UnionMergePostprocess
+from sahi_lite.prediction import ObjectPrediction, PredictionResult
+from sahi_lite.slicing import slice_image
+from sahi_lite.utils.cv import read_image_as_pil
 from tqdm import tqdm
 
 MODEL_TYPE_TO_MODEL_CLASS_NAME = {

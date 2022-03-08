@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 import requests
 from PIL import Image
-from sahi.utils.file import Path
+from sahi_lite.utils.file import Path
 
 
 class Colors:

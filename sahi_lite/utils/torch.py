@@ -2,7 +2,9 @@
 # Code written by Fatih C Akyon, 2020.
 
 import torch
-
+from torch import stack as torch_stack
+from torch.cuda import empty_cache as empty_cuda_cache
+from torch.cuda import is_available as cuda_is_available
 
 def to_float_tensor(img) -> torch.tensor:
     """

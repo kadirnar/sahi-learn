@@ -3,7 +3,7 @@ from typing import List, Union
 
 import numpy as np
 import torch
-from sahi_lite.annotation import BoundingBox, Category, Mask
+from sahi_lite.annotation import BoundingBox, Category
 from sahi_lite.prediction import ObjectPrediction
 
 
@@ -156,17 +156,6 @@ def has_match(
     return threshold_condition
 
 
-def get_merged_mask(pred1: ObjectPrediction, pred2: ObjectPrediction) -> Mask:
-    mask1 = pred1.mask
-    mask2 = pred2.mask
-    union_mask = np.logical_or(mask1.bool_mask, mask2.bool_mask)
-    return Mask(
-        bool_mask=union_mask,
-        full_shape=mask1.full_shape,
-        shift_amount=mask1.shift_amount,
-    )
-
-
 def get_merged_score(
         pred1: ObjectPrediction,
         pred2: ObjectPrediction,
@@ -197,13 +186,8 @@ def merge_object_prediction_pair(
     merged_bbox: BoundingBox = get_merged_bbox(pred1, pred2)
     merged_score: float = get_merged_score(pred1, pred2)
     merged_category: Category = get_merged_category(pred1, pred2)
-    if pred1.mask and pred2.mask:
-        merged_mask: Mask = get_merged_mask(pred1, pred2)
-        bool_mask = merged_mask.bool_mask
-        full_shape = merged_mask.full_shape
-    else:
-        bool_mask = None
-        full_shape = None
+    bool_mask = None
+    full_shape = None
     return ObjectPrediction(
         bbox=merged_bbox.to_voc_bbox(),
         score=merged_score,

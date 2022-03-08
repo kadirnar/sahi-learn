@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 import requests
 from PIL import Image
-from sahi_lite.utils.file import Path
+from pathlib import Path
 
 
 class Colors:
@@ -382,109 +382,3 @@ def visualize_object_predictions(
         cv2.imwrite(save_path, cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
     elapsed_time = time.time() - elapsed_time
     return {"image": image, "elapsed_time": elapsed_time}
-
-
-def get_coco_segmentation_from_bool_mask(bool_mask):
-    """
-    Convert boolean mask to coco segmentation format
-    [
-        [x1, y1, x2, y2, x3, y3, ...],
-        [x1, y1, x2, y2, x3, y3, ...],
-        ...
-    ]
-    """
-    # Generate polygons from mask
-    mask = np.squeeze(bool_mask)
-    mask = mask.astype(np.uint8)
-    mask = cv2.copyMakeBorder(mask, 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=0)
-    polygons = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE, offset=(-1, -1))
-    polygons = polygons[0] if len(polygons) == 2 else polygons[1]
-    # Convert polygon to coco segmentation
-    coco_segmentation = []
-    for polygon in polygons:
-        segmentation = polygon.flatten().tolist()
-        # at least 3 points needed for a polygon
-        if len(segmentation) >= 6:
-            coco_segmentation.append(segmentation)
-    return coco_segmentation
-
-
-def get_bool_mask_from_coco_segmentation(coco_segmentation, width, height):
-    """
-    Convert coco segmentation to 2D boolean mask of given height and width
-    """
-    size = [height, width]
-    points = [np.array(point).reshape(-1, 2).round().astype(int) for point in coco_segmentation]
-    bool_mask = np.zeros(size)
-    bool_mask = cv2.fillPoly(bool_mask, points, 1)
-    bool_mask.astype(bool)
-    return bool_mask
-
-
-def get_bbox_from_bool_mask(bool_mask):
-    """
-    Generate voc bbox ([xmin, ymin, xmax, ymax]) from given bool_mask (2D np.ndarray)
-    """
-    rows = np.any(bool_mask, axis=1)
-    cols = np.any(bool_mask, axis=0)
-
-    if not np.any(rows) or not np.any(cols):
-        return None
-
-    ymin, ymax = np.where(rows)[0][[0, -1]]
-    xmin, xmax = np.where(cols)[0][[0, -1]]
-    width = xmax - xmin
-    height = ymax - ymin
-
-    if width == 0 or height == 0:
-        return None
-
-    return [xmin, ymin, xmax, ymax]
-
-
-def normalize_numpy_image(image: np.ndarray):
-    """
-    Normalizes numpy image
-    """
-    return image / np.max(image)
-
-
-def ipython_display(image: np.ndarray):
-    """
-    Displays numpy image in notebook.
-
-    If input image is in range 0..1, please first multiply img by 255
-    Assumes image is ndarray of shape [height, width, channels] where channels can be 1, 3 or 4
-    """
-    import IPython
-
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    _, ret = cv2.imencode(".png", image)
-    i = IPython.display.Image(data=ret)
-    IPython.display.display(i)
-
-
-def exif_transpose(image: Image.Image):
-    """
-    Transpose a PIL image accordingly if it has an EXIF Orientation tag.
-    Inplace version of https://github.com/python-pillow/Pillow/blob/master/src/PIL/ImageOps.py exif_transpose()
-    :param image: The image to transpose.
-    :return: An image.
-    """
-    exif = image.getexif()
-    orientation = exif.get(0x0112, 1)  # default 1
-    if orientation > 1:
-        method = {
-            2: Image.FLIP_LEFT_RIGHT,
-            3: Image.ROTATE_180,
-            4: Image.FLIP_TOP_BOTTOM,
-            5: Image.TRANSPOSE,
-            6: Image.ROTATE_270,
-            7: Image.TRANSVERSE,
-            8: Image.ROTATE_90,
-        }.get(orientation)
-        if method is not None:
-            image = image.transpose(method)
-            del exif[0x0112]
-            image.info["exif"] = exif.tobytes()
-    return image

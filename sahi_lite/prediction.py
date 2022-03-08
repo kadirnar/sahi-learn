@@ -8,7 +8,7 @@ import numpy as np
 from PIL import Image
 from sahi_lite.annotation import ObjectAnnotation
 from sahi_lite.utils.cv import read_image_as_pil, visualize_object_predictions
-from sahi_lite.utils.file import Path
+from pathlib import Path
 
 
 class PredictionScore:
@@ -105,42 +105,6 @@ class ObjectPrediction(ObjectAnnotation):
                 shift_amount=[0, 0],
                 full_shape=None,
             )
-
-    def to_coco_prediction(self, image_id=None):
-        """
-        Returns sahi.utils.coco.CocoPrediction representation of ObjectAnnotation.
-        """
-        if self.mask:
-            coco_prediction = CocoPrediction.from_coco_segmentation(
-                segmentation=self.mask.to_coco_segmentation(),
-                category_id=self.category.id,
-                category_name=self.category.name,
-                score=self.score.value,
-                image_id=image_id,
-            )
-        else:
-            coco_prediction = CocoPrediction.from_coco_bbox(
-                bbox=self.bbox.to_coco_bbox(),
-                category_id=self.category.id,
-                category_name=self.category.name,
-                score=self.score.value,
-                image_id=image_id,
-            )
-        return coco_prediction
-
-    def to_fiftyone_detection(self, image_height: int, image_width: int):
-        """
-        Returns fiftyone.Detection representation of ObjectPrediction.
-        """
-        try:
-            import fiftyone as fo
-        except ImportError:
-            raise ImportError('Please run "pip install -U fiftyone" to install fiftyone first for fiftyone conversion.')
-
-        x1, y1, x2, y2 = self.bbox.to_voc_bbox()
-        rel_box = [x1 / image_width, y1 / image_height, (x2 - x1) / image_width, (y2 - y1) / image_height]
-        fiftyone_detection = fo.Detection(label=self.category.name, bounding_box=rel_box, confidence=self.score.value)
-        return fiftyone_detection
 
     def __repr__(self):
         return f"""ObjectPrediction<

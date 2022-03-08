@@ -6,6 +6,7 @@ from torch import stack as torch_stack
 from torch.cuda import empty_cache as empty_cuda_cache
 from torch.cuda import is_available as cuda_is_available
 
+
 def to_float_tensor(img) -> torch.tensor:
     """
     Converts a PIL.Image (RGB) or numpy.ndarray (H x W x C) in the range

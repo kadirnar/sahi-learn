@@ -3,9 +3,9 @@ import warnings
 from typing import Dict, List, Optional
 
 import numpy as np
-from sahi.prediction import ObjectPrediction
-from sahi.utils.compatibility import fix_full_shape_list, fix_shift_amount_list
-from sahi.utils.torch import cuda_is_available, empty_cuda_cache
+from sahi_lite.prediction import ObjectPrediction
+from sahi_lite.utils.compatibility import fix_full_shape_list, fix_shift_amount_list
+from sahi_lite.utils.torch import cuda_is_available, empty_cuda_cache
 
 logger = logging.getLogger(__name__)
 

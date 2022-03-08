@@ -3,8 +3,8 @@ from typing import List, Union
 
 import numpy as np
 import torch
-from sahi.annotation import BoundingBox, Category, Mask
-from sahi.prediction import ObjectPrediction
+from sahi_lite.annotation import BoundingBox, Category, Mask
+from sahi_lite.prediction import ObjectPrediction
 
 
 class ObjectPredictionList(Sequence):

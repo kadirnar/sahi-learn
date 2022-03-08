@@ -5,8 +5,8 @@ import logging
 from typing import List
 
 import torch
-from sahi.postprocess.utils import ObjectPredictionList, has_match, merge_object_prediction_pair
-from sahi.prediction import ObjectPrediction
+from sahi_lite.postprocess.utils import ObjectPredictionList, has_match, merge_object_prediction_pair
+from sahi_lite.prediction import ObjectPrediction
 
 logger = logging.getLogger(__name__)
 

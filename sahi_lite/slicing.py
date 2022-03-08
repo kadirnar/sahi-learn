@@ -10,9 +10,9 @@ from typing import Dict, List, Optional, Union
 
 import numpy as np
 from PIL import Image
-from sahi.utils.coco import Coco, CocoAnnotation, CocoImage, create_coco_dict
-from sahi.utils.cv import read_image_as_pil
-from sahi.utils.file import load_json, save_json
+from sahi_lite.utils.coco import Coco, CocoAnnotation, CocoImage, create_coco_dict
+from sahi_lite.utils.cv import read_image_as_pil
+from sahi_lite.utils.file import load_json, save_json
 from shapely.errors import TopologicalError
 from tqdm import tqdm
 

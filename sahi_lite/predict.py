@@ -14,7 +14,6 @@ from sahi_lite.postprocess.combine import (
     NMSPostprocess,
     PostprocessPredictions,
 )
-from sahi_lite.postprocess.legacy.combine import UnionMergePostprocess
 from sahi_lite.prediction import ObjectPrediction, PredictionResult
 from sahi_lite.slicing import slice_image
 from sahi_lite.utils.cv import read_image_as_pil
@@ -208,14 +207,6 @@ def get_sliced_prediction(
         )
     elif postprocess_type == "LSNMS":
         postprocess = LSNMSPostprocess(
-            match_threshold=postprocess_match_threshold,
-            match_metric=postprocess_match_metric,
-            class_agnostic=postprocess_class_agnostic,
-        )
-    elif postprocess_type == "UNIONMERGE":
-        # sahi v0.8.16 compatibility
-        logger.warning("'UNIONMERGE' is deprecated, use 'GREEDYNMM' instead.")
-        postprocess = UnionMergePostprocess(
             match_threshold=postprocess_match_threshold,
             match_metric=postprocess_match_metric,
             class_agnostic=postprocess_class_agnostic,

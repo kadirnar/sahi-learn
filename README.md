@@ -11,6 +11,14 @@
 Herkese merhabalar ben Kadir Nar. SAHI kütüphanesine gönül vermiş bir geliştiriciyim. 
 Bu repo da sizlere model.py dosyasını anlatacağım. Hadi başlayalım :) 
 
+- [1.DetectionModel(Detection)](#1-detectionmodeldetection)<br/>
+- [2.load_model():](#2load_model)<br/>
+- [3.perform_inference():](#3perform_inference)<br/>
+- [4.num_categories():](#4num_categories)<br/>
+- [5.has_mask():](#5has_mask)<br/>
+- [6.category_names():](#6category_names)<br/>
+- [7._create_object_prediction_list_from_original_predictions():](#7_create_object_prediction_list_from_original_predictions)<br/>
+
 
 ### 1. DetectionModel(Detection) 
 Class ismini oluştururkan model isminin yanına DetectionModel(Detection) yazıyoruz.

@@ -13,141 +13,191 @@
 Herkese merhabalar ben Kadir Nar. SAHI kütüphanesine gönül vermiş bir geliştiriciyim. 
 Bu repo da sizlere model.py dosyasını anlatacağım. Hadi başlayalım :) 
 
-Eklemek istediğimz kütüphanesinin ismi NarDet olsun :) 
+
+### 1. Class Yapısı Oluştur
+Class ismini oluştururkan model isminin yanına DetectionModel(Detection) yazıyoruz.
+
+##### Örnekler:
+1.1 Mmdet:
 
 ```
-class NarDetDetectionModel(DetectionModel):
+class MmdetDetectionModel(DetectionModel)
 ```
-load_model(): NarDet modelinin PYPI desteği olması gerekmektedir.
+1.2 Yolov5:
+```
+class Yolov5DetectionModel(DetectionModel):
+```
+1.3 Detectron2:
+```
+class Detectron2DetectionModel(DetectionModel)
+```
+1.4 TorchVision:
+```
+class TorchVisionDetectionModel(DetectionModel)
+```
+
+2. load_model(): Bu fonksyion 3 aşamadan oluşmaktadır.
+
+a. Kütüphaneyi yüklüyoruz. PYPI desteği olmayan kütüphanelerin kurulumunu desteklemiyoruz.
+
+b. Modele girecek resimlerin image_size değerlerini güncelliyoruz.
+
+c. category_mapping değişkenini {"1": "pedestrian"} bu formatta olacak şekilde yazıyoruz.
+
+##### Örnekler:
+
+2.1 Mmdet:
+
+```
+def load_model(self):
+    """
+    Detection model is initialized and set to self.model.
+    """
+    try:
+        import mmdet
+    except ImportError:
+        raise ImportError(
+            'Please run "pip install -U mmcv mmdet" ' "to install MMDetection first for MMDetection inference."
+        )
+
+    from mmdet.apis import init_detector
+
+    # create model
+    model = init_detector(
+        config=self.config_path,
+        checkpoint=self.model_path,
+        device=self.device,
+    )
+
+    # update model image size
+    if self.image_size is not None:
+        model.cfg.data.test.pipeline[1]["img_scale"] = (self.image_size, self.image_size)
+
+    # set self.model
+    self.model = model
+
+    # set category_mapping
+    if not self.category_mapping:
+        category_mapping = {str(ind): category_name for ind, category_name in enumerate(self.category_names)}
+        self.category_mapping = category_mapping
+```
+
+2.2 Yolov5:
+```
+    def load_model(self):
+        """
+        Detection model is initialized and set to self.model.
+        """
+        try:
+            import yolov5
+        except ImportError:
+            raise ImportError('Please run "pip install -U yolov5" ' "to install YOLOv5 first for YOLOv5 inference.")
+
+        # set model
+        try:
+            model = yolov5.load(self.model_path, device=self.device)
+            model.conf = self.confidence_threshold
+            self.model = model
+        except Exception as e:
+            TypeError("model_path is not a valid yolov5 model path: ", e)
+
+        # set category_mapping
+        if not self.category_mapping:
+            category_mapping = {str(ind): category_name for ind, category_name in enumerate(self.category_names)}
+            self.category_mapping = category_mapping
+```
+2.3 Detectron2:
+
+
 ```
 def load_model(self):
     try:
-        import NarDet
+        import detectron2
     except ImportError:
         raise ImportError(
-            "NarDet is not installed. Please run 'pip install -U NarDet to use this "
-            "NarDet models'"
+            "Please install detectron2. Check "
+            "`https://detectron2.readthedocs.io/en/latest/tutorials/install.html` "
+            "for instalattion details."
         )
-```
-set model: NarDet model dosyasını oluşturuyoruz. 
-Daha sonra model.to(self.device) benzeri yapı kullanmalıyız.
-```
 
-# set model
-try:
-    # model dosyasını oluşturuyoruz fakat self.device yapısı kullanmamız gerekiyor.
-    self.model = narmodel.NarModel(self.device) # Bunun benzeri bir şey.
-except Exception as e:
-    raise Exception(f"Failed to load model from {self.model_path}. {e}")
+    from detectron2.config import get_cfg
+    from detectron2.data import MetadataCatalog
+    from detectron2.engine import DefaultPredictor
+    from detectron2.model_zoo import model_zoo
 
-```
-Sınıfları {"1": "pedestrian"} bu şekilde olacak şekilde kodlamasını yapıyoruz.
-```
-    # set category_mapping
-    self.category_mapping = {
-        str(i): category for i, category in enumerate(self.model.classes)
-    }
-    # Bunun gibi bir şey kodlamanız gerekecektir.
-```
-perform_inference(): NarDet modelinin resimlerin giriş değerlerini veriyoruz.
-```
-def perform_inference(self, image: np.ndarray, image_size: int = None):
-    # image değerine resize işlemi uygulamanız gerekiyor.
-    
-    if image_size is not None:
-        image = cv2.resize(image, (self.image_size, self.image_size))
-        prediction_result = self.model.(image)
+    cfg = get_cfg()
+    cfg.MODEL.DEVICE = self.device
+
+    try:  # try to load from model zoo
+        config_file = model_zoo.get_config_file(self.config_path)
+        cfg.merge_from_file(config_file)
+        cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(self.config_path)
+    except Exception as e:  # try to load from local
+        print(e)
+        if self.config_path is not None:
+            cfg.merge_from_file(self.config_path)
+        cfg.MODEL.WEIGHTS = self.model_path
+    # set input image size
+    if self.image_size is not None:
+        cfg.INPUT.MIN_SIZE_TEST = self.image_size
+        cfg.INPUT.MAX_SIZE_TEST = self.image_size
+    # init predictor
+    model = DefaultPredictor(cfg)
+
+    self.model = model
+
+    # detectron2 category mapping
+    if self.category_mapping is None:
+        try:  # try to parse category names from metadata
+            metadata = MetadataCatalog.get(cfg.DATASETS.TRAIN[0])
+            category_names = metadata.thing_classes
+            self.category_names = category_names
+            self.category_mapping = {
+                str(ind): category_name for ind, category_name in enumerate(self.category_names)
+            }
+        except Exception as e:
+            logger.warning(e)
+            # https://detectron2.readthedocs.io/en/latest/tutorials/datasets.html#update-the-config-for-new-datasets
+            if cfg.MODEL.META_ARCHITECTURE == "RetinaNet":
+                num_categories = cfg.MODEL.RETINANET.NUM_CLASSES
+            else:  # fasterrcnn/maskrcnn etc
+                num_categories = cfg.MODEL.ROI_HEADS.NUM_CLASSES
+            self.category_names = [str(category_id) for category_id in range(num_categories)]
+            self.category_mapping = {
+                str(ind): category_name for ind, category_name in enumerate(self.category_names)
+            }
     else:
-        prediction_result = self.model.(image)
-       
-    self._original_predictions = prediction_result
-    
+        self.category_names = list(self.category_mapping.values())
 ```
-num_categories(): NarDet modelinin kategorilerinin sayısını veriyoruz.
-```
-@property
-def num_categories(self):
-    """
-    Returns number of categories
-    """
-    return len(self.category_mapping)
-
-```
-has_mask(): NarDet modelinin masklerinin olup olmadığını kontrol ediyoruz.
-```
-@property
-def has_mask(self):
-    """
-    Returns if model output contains segmentation mask
-    """
-    return self.model.with_mask
-```
-category_names(): NarDet modelinin kategorilerinin isimlerini veriyoruz.
-```
-@property
-def category_names(self):
-    return self.category_mapping
+2.4 TorchVision:
 
 
 ```
-_create_object_prediction_list_from_original_predictions():
-    NarDet modelinin tahminlerini döndürüyoruz.
-```
-def _create_object_prediction_list_from_original_predictions(
-    self,
-    shift_amount_list: Optional[List[List[int]]] = [[0, 0]],
-    full_shape_list: Optional[List[List[int]]] = None,
-    
-):
-        # SAHI yapısı standart yapıları kullanıyoruz.
-        
-        original_predictions = self._original_predictions
-        category_mapping = self.category_mapping
+def load_model(self):
+    try:
+        import torchvision
+    except ImportError:
+        raise ImportError(
+            "torchvision is not installed. Please run 'pip install -U torchvision to use this "
+            "torchvision models'"
+        )
 
-        # compatilibty for sahi v0.8.20
-        if isinstance(shift_amount_list[0], int):
-            shift_amount_list = [shift_amount_list]
-        if full_shape_list is not None and isinstance(full_shape_list[0], int):
-            full_shape_list = [full_shape_list]
-            
-        # boxes, masks, scores, category_ids predict değerlerini for döngüsüne döndürüyoruz.
-        boxes = original_predictions["boxes"]
-        masks = original_predictions["masks"]
-        scores = original_predictions["scores"]
-        category_ids = original_predictions["category_ids"]
-        
-        # check if predictions contain mask
-        try: 
-            masks = original_predictions["masks"]
-        except KeyError:
-            masks = None
-            
-        # create object_prediction_list
-        object_prediction_list_per_image = []
-        object_prediction_list = []  
-        
-        # boxes değişkeninde for döngüsü oluşturuyoruz.
-        for ind in range(len(boxes)):
-            score = scores[ind]
-            score = score if score > self.self.confidence_threshold 
-            category_id = category_ids[ind]
-            category = category_mapping[str(category_id)]
-            box = boxes[ind]
-            mask = masks[ind] if masks is not None else None
-            
-            object_prediction = ObjectPrediction(
-                bbox=bbox,
-                bool_mask=mask,
-                category_id=category_id,
-                category_name=self.category_mapping[str(category_id)],
-                shift_amount=shift_amount,
-                score=score,
-                full_shape=full_shape,
-            )
-            object_prediction_list.append(object_prediction)
+    # set model
+    try:
+        from sahi.utils.torch import torch
 
-        object_prediction_list_per_image = [object_prediction_list]
+        model = self.config_path
+        model.load_state_dict(torch.load(self.model_path))
+        model.eval()
+        model = model.to(self.device)
+        self.model = model
+    except Exception as e:
+        raise Exception(f"Failed to load model from {self.model_path}. {e}")
 
-        self._object_prediction_list_per_image = object_prediction_list_per_image            
-            
+    # set category_mapping
+    from sahi.utils.torchvision import COCO_CLASSES
+
+    if self.category_mapping is None:
+        category_names = {str(i): COCO_CLASSES[i] for i in range(len(COCO_CLASSES))}
+        self.category_mapping = category_names
 ```

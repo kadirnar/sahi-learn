@@ -1,6 +1,6 @@
 <div align="center">
 <h1>
-  SAHI-LiTE: SAHI'den Beraber Kodlamak İster Misiniz :)
+  SAHI-LiTE: SAHI'den Beraber Kodlamak İster Misiniz
 </h1>
 <h4>
     <img width="700" alt="teaser" src="obss.png">

@@ -1,6 +1,6 @@
 <div align="center">
 <h1>
-  SAHI-LiTE: SAHI'den Beraber Kodlamak İster Misiniz
+  SAHI-Learn: SAHI'den Beraber Kodlamak İster Misiniz
 </h1>
 <h4>
     <img width="700" alt="teaser" src="obss.png">
@@ -16,6 +16,7 @@ Bu repo da sizlere model.py dosyasını anlatacağım. Hadi başlayalım :)
 Class ismini oluştururkan model isminin yanına DetectionModel(Detection) yazıyoruz.
 
 ### Örnekler:
+
 1.1 Mmdet:
 ```
 class MmdetDetectionModel(DetectionModel)
@@ -32,7 +33,6 @@ class Detectron2DetectionModel(DetectionModel)
 ```
 class TorchVisionDetectionModel(DetectionModel)
 ```
-
 
 ### 2.load_model(): 
 Bu fonksyion 3 aşamadan oluşmaktadır.
@@ -197,8 +197,7 @@ def load_model(self):
 ```
 
 
-### 3.perform_inference(): 
-
+### 3.perform_inference():
 3.1 Mmdet:
 ```
 def perform_inference(self, image: np.ndarray, image_size: int = None):
@@ -367,9 +366,7 @@ def num_categories(self):
     return len(self.category_mapping)
 ```
 
-
-### 5.has_mask(): 
-
+### 5.has_mask():
 5.1 Mmdet:
 ```
 def has_mask(self):
@@ -390,8 +387,6 @@ def has_mask(self):
     return has_mask
 ```
 5.3 Detectron2:
-
-Segmentasyon değerlerini _create_object_prediction_list_from_original_predictions fonksiyonunda kontrol ediliyor.
 ```
 if get_bbox_from_bool_mask(mask) is not None:
     bbox = None
@@ -407,8 +402,7 @@ def has_mask(self):
     return self.model.with_mask
 ```
 
-### 6.category_names(): 
-
+### 6.category_names():
 6.1 Mmdet:
 ```
 def category_names(self):
@@ -424,8 +418,6 @@ def category_names(self):
     return self.model.names
 ```
 6.3 Detectron2:
-
-Detectron2 kütüphanesinde load_model() fonksiyonu içinde yazılmıştır.
 ```
 # detectron2 category mapping
 if self.category_mapping is None:
@@ -439,8 +431,8 @@ if self.category_mapping is None:
 def category_names(self):
     return self.category_mapping
 ```
-### 7._create_object_prediction_list_from_original_predictions(): 
 
+### 7._create_object_prediction_list_from_original_predictions():
 7.1 Mmdet:
 ```
 def _create_object_prediction_list_from_original_predictions(
@@ -608,7 +600,6 @@ def _create_object_prediction_list_from_original_predictions(
 
     self._object_prediction_list_per_image = object_prediction_list_per_image
 ```
-
 7.3 Detectron2:
 ```
 def _create_object_prediction_list_from_original_predictions(
@@ -690,5 +681,4 @@ def _create_object_prediction_list_from_original_predictions(
     self._object_prediction_list_per_image = object_prediction_list_per_image
 ```
 7.4 TorchVision:
-
-Not: TorvhVision kütüphansesi geliştirilmeye devam etmektedir.
+Not: TorvhVision kütüphanesinin geliştirilmeye devam etmektedir.

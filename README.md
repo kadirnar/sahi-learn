@@ -8,8 +8,8 @@
 
 </div>
 
-Herkese merhabalar ben Kadir Nar. SAHI kütüphanesine gönül vermiş bir geliştiriciyim. 
-Bu repo da sizlere model.py dosyasını anlatacağım. Hadi başlayalım :) 
+Herkese merhabalar ben Kadir Nar. SAHI kütüphanesine gönüllü geliştiriciyim. 
+Bu repo SAHI kütüphanesine yeni bir model nasıl ekleneceğini anlattım.
 
 ### Geliştiriciler için SAHI Yol Haritası
 
@@ -45,13 +45,13 @@ class TorchVisionDetectionModel(DetectionModel)
 ```
 
 ### 2.load_model(): 
-Bu fonksyion 3 aşamadan oluşmaktadır.
+Bu fonksiyon 3 aşamadan oluşmaktadır.
 
-a. Kütüphaneyi yüklüyoruz. PYPI desteği olmayan kütüphanelerin kurulumunu desteklemiyoruz.
+a. Kütüphaneyi import ediyoruz. PYPI desteği olmayan kütüphanelerin kurulumunu desteklenmiyor.
 
-b. Modele girecek resimlerin image_size değerlerini güncelliyoruz.
+b. Modele girecek resimlerin image_size değerlerini güncellemeniz gerekiyor.
 
-c. category_mapping değişkenini {"1": "pedestrian"} bu formatta olacak şekilde yazıyoruz.
+c. category_mapping değişkenini {"1": "pedestrian"} bu formatta olması gerekiyor.
 
 ### Örnekler:
 
@@ -208,6 +208,11 @@ def load_model(self):
 
 
 ### 3.perform_inference():
+Bu fonksiyonda 3 aşamada oluşmaktadır.
+a. Kütüphanenin import edilmesi gerekiyor.
+b. Resimlerin size değerinin güncellenmesi lazım.
+c. Modelin tahmin kodlarının yazılması gerekiyor.
+
 3.1 Mmdet:
 ```
 def perform_inference(self, image: np.ndarray, image_size: int = None):
@@ -338,6 +343,8 @@ def perform_inference(self, image: np.ndarray, image_size: int = None):
 
 
 ### 4.num_categories(): 
+Bu fonksiyonda tahmin edilen kategorilerin sayısını döndürmesi isteniyor.
+
 4.1 Mmdet:
 ```
 def num_categories(self):
@@ -377,6 +384,8 @@ def num_categories(self):
 ```
 
 ### 5.has_mask():
+Bu fonksiyonda tahmin edilen kategorilerin maskleri olup olmadığını döndürmesi isteniyor.
+
 5.1 Mmdet:
 ```
 def has_mask(self):
@@ -413,6 +422,8 @@ def has_mask(self):
 ```
 
 ### 6.category_names():
+Bu fonksiyonda tahmin edilen kategorilerin isimlerini döndürmesi isteniyor.
+
 6.1 Mmdet:
 ```
 def category_names(self):
@@ -443,6 +454,38 @@ def category_names(self):
 ```
 
 ### 7._create_object_prediction_list_from_original_predictions():
+Bu fonksiyon da bir şablon üzerinden kodlama yapmanız sizin için daha rahat olacaktır. Fonksiyonunu altına direk bunu yazabilirsiniz.
+```
+original_predictions = self._original_predictions
+
+# compatilibty for sahi v0.8.15
+if isinstance(shift_amount_list[0], int):
+    shift_amount_list = [shift_amount_list]
+if full_shape_list is not None and isinstance(full_shape_list[0], int):
+    full_shape_list = [full_shape_list]
+```
+Bundan sonra modeliniz tahminleme yaptıktan sonra bbox,mask,category_id, category_name ve score değerleri döndürmesi isteniyor. 
+Bu değerleri object_prediction değişkeninin içindeki none değerleri yerine yazmanız gerekiyor. Aşağıdaki şablon yapısını da bozmamanız istenmektedir.
+
+```
+    object_prediction = ObjectPrediction(
+        bbox=None,
+        bool_mask=None,
+        category_id=None,
+        category_name=sNone,
+        shift_amount=shift_amount,
+        score=None,
+        full_shape=full_shape,
+    )
+    object_prediction_list.append(object_prediction)
+
+# detectron2 DefaultPredictor supports single image
+object_prediction_list_per_image = [object_prediction_list]
+
+self._object_prediction_list_per_image = object_prediction_list_per_image
+
+```
+
 7.1 Mmdet:
 ```
 def _create_object_prediction_list_from_original_predictions(
@@ -691,4 +734,4 @@ def _create_object_prediction_list_from_original_predictions(
     self._object_prediction_list_per_image = object_prediction_list_per_image
 ```
 7.4 TorchVision:
-Not: TorvhVision kütüphanesinin geliştirilmeye devam etmektedir.
+Not: TorchVision kütüphanesinin geliştirilmeye devam etmektedir.

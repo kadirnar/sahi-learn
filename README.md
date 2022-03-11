@@ -209,8 +209,11 @@ def load_model(self):
 
 ### 3.perform_inference():
 Bu fonksiyonda 3 aşamada oluşmaktadır.
+
 a. Kütüphanenin import edilmesi gerekiyor.
+
 b. Resimlerin size değerinin güncellenmesi lazım.
+
 c. Modelin tahmin kodlarının yazılması gerekiyor.
 
 3.1 Mmdet:
